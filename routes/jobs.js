@@ -698,4 +698,43 @@ router.post('/:id/unverify', authenticateToken, requireRole(['admin']), async (r
   }
 });
 
+// @route   DELETE /api/jobs/:id
+// @desc    Delete a Job Sheet (Operations Bhupinder or Admin only)
+router.delete('/:id', authenticateToken, requireRole(['operations', 'admin']), async (req, res) => {
+  const jobNo = decodeURIComponent(req.params.id);
+
+  try {
+    const job = await db.get('SELECT * FROM job_sheets WHERE job_sheet_no = ?', [jobNo]);
+    if (!job) {
+      return res.status(404).json({ message: 'Job Sheet not found.' });
+    }
+
+    // Lock check: Verified jobs cannot be deleted
+    if (job.status === 'Verified') {
+      return res.status(403).json({
+        message: 'This Job Sheet is VERIFIED and locked. Only Pankaj Agrawal can unverify it before it can be deleted.'
+      });
+    }
+
+    // Delete automatically generated ledger entry for extra billing
+    await db.run('DELETE FROM ledger WHERE job_sheet_no = ? AND particulars = ?', [jobNo, 'Extra Billing from Job Sheet']);
+    await recalculateLedger(job.client_name);
+
+    // Delete job sheet (child tables job_purchases and job_sales will delete via cascade)
+    await db.run('DELETE FROM job_sheets WHERE job_sheet_no = ?', [jobNo]);
+
+    // Write Audit Log
+    const timestamp = new Date().toISOString();
+    await db.run(`
+      INSERT INTO audit_logs (job_sheet_no, action, performed_by, timestamp, changes)
+      VALUES (?, 'DELETE', ?, ?, ?)
+    `, [jobNo, req.user.name, timestamp, JSON.stringify(job)]);
+
+    res.json({ message: 'Job Sheet deleted successfully.' });
+  } catch (error) {
+    console.error('Error deleting job sheet:', error);
+    res.status(500).json({ message: 'Server error deleting Job Sheet.' });
+  }
+});
+
 module.exports = router;

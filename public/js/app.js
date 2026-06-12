@@ -302,6 +302,11 @@ function renderJobsTable(jobsList) {
           <button class="btn-icon edit-btn ${job.status === 'Verified' && state.user.role !== 'admin' ? 'hidden' : ''}" title="Edit/Verify Job Sheet" data-id="${encodeURIComponent(job.job_sheet_no)}">
             <i class="fa-solid fa-edit"></i>
           </button>
+          ${(job.status !== 'Verified' && (state.user.role === 'operations' || state.user.role === 'admin')) ? `
+            <button class="btn-icon delete-job-btn" title="Delete Job Sheet" data-id="${encodeURIComponent(job.job_sheet_no)}" style="color: #ef4444;">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          ` : ''}
         </div>
       </td>
     `;
@@ -321,6 +326,9 @@ function renderJobsTable(jobsList) {
         openEditJobModal(id);
       }
     });
+  });
+  tbody.querySelectorAll('.delete-job-btn').forEach(btn => {
+    btn.addEventListener('click', () => deleteJobSheet(btn.getAttribute('data-id')));
   });
 }
 
@@ -802,6 +810,27 @@ document.getElementById('job-save-bill-btn').addEventListener('click', async () 
     console.error('Error saving sale bills:', error);
   }
 });
+
+// Delete Job Sheet function
+async function deleteJobSheet(jobNo) {
+  if (!confirm(`Are you sure you want to delete Job Sheet ${decodeURIComponent(jobNo)}? This action cannot be undone.`)) {
+    return;
+  }
+  try {
+    const response = await fetch(`${API_BASE}/api/jobs/${jobNo}`, {
+      method: 'DELETE',
+      headers: getHeaders()
+    });
+    const data = await response.json();
+    if (response.ok) {
+      reloadJobsListCurrentTab();
+    } else {
+      alert(data.message || 'Error deleting Job Sheet.');
+    }
+  } catch (error) {
+    console.error('Error deleting job sheet:', error);
+  }
+}
 
 // View Job Details Modal
 async function openJobDetailModal(jobNo) {
