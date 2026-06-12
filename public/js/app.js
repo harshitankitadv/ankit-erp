@@ -302,7 +302,7 @@ function renderJobsTable(jobsList) {
           <button class="btn-icon edit-btn ${job.status === 'Verified' && state.user.role !== 'admin' ? 'hidden' : ''}" title="Edit/Verify Job Sheet" data-id="${encodeURIComponent(job.job_sheet_no)}">
             <i class="fa-solid fa-edit"></i>
           </button>
-          ${(job.status !== 'Verified' && (state.user.role === 'operations' || state.user.role === 'admin')) ? `
+          ${((job.status !== 'Verified' && (state.user.role === 'operations' || state.user.role === 'admin')) || (job.status === 'Verified' && state.user.role === 'admin')) ? `
             <button class="btn-icon delete-job-btn" title="Delete Job Sheet" data-id="${encodeURIComponent(job.job_sheet_no)}" style="color: #ef4444;">
               <i class="fa-solid fa-trash-can"></i>
             </button>

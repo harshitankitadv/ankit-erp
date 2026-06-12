@@ -709,10 +709,10 @@ router.delete('/:id', authenticateToken, requireRole(['operations', 'admin']), a
       return res.status(404).json({ message: 'Job Sheet not found.' });
     }
 
-    // Lock check: Verified jobs cannot be deleted
-    if (job.status === 'Verified') {
+    // Lock check: Verified jobs can only be deleted by admin (Pankaj)
+    if (job.status === 'Verified' && req.user.role !== 'admin') {
       return res.status(403).json({
-        message: 'This Job Sheet is VERIFIED and locked. Only Pankaj Agrawal can unverify it before it can be deleted.'
+        message: 'This Job Sheet is VERIFIED and locked. Only Admin (Pankaj Agrawal) can delete a verified Job Sheet.'
       });
     }
 
