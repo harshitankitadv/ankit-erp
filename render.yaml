@@ -1,0 +1,22 @@
+databases:
+  - name: ankit-erp-db
+    plan: free
+
+services:
+  - type: web
+    name: ankit-advertising-erp
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: PORT
+        value: 3000
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DB_TYPE
+        value: postgres
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ankit-erp-db
+          property: connectionString

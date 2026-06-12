@@ -17,6 +17,8 @@ async function initializeDatabase() {
     let schemaFile = '';
     if (db.type === 'sqlite') {
       schemaFile = path.join(__dirname, 'schema.sqlite.sql');
+    } else if (db.type === 'postgres') {
+      schemaFile = path.join(__dirname, 'schema.postgres.sql');
     } else {
       schemaFile = path.join(__dirname, 'schema.mysql.sql');
     }

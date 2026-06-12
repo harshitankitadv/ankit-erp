@@ -63,6 +63,57 @@ if (dbType === 'sqlite') {
       });
     }
   };
+} else if (dbType === 'postgres') {
+  const { Pool } = require('pg');
+  const connectionString = process.env.DATABASE_URL;
+
+  const pool = new Pool({
+    connectionString,
+    ssl: {
+      rejectUnauthorized: false
+    }
+  });
+
+  console.log('Connected to PostgreSQL database');
+
+  function convertSql(sql) {
+    let index = 1;
+    return sql.replace(/\?/g, () => `$${index++}`);
+  }
+
+  dbInstance = {
+    type: 'postgres',
+    pool,
+    async query(sql, params = []) {
+      const pgSql = convertSql(sql);
+      const { rows } = await pool.query(pgSql, params);
+      return rows;
+    },
+    async get(sql, params = []) {
+      const pgSql = convertSql(sql);
+      const { rows } = await pool.query(pgSql, params);
+      return rows.length > 0 ? rows[0] : null;
+    },
+    async run(sql, params = []) {
+      const pgSql = convertSql(sql);
+      const result = await pool.query(pgSql, params);
+      return {
+        lastID: null,
+        changes: result.rowCount
+      };
+    },
+    async exec(sql) {
+      const statements = sql
+        .split(';')
+        .map(s => s.trim())
+        .filter(s => s.length > 0);
+      
+      for (const statement of statements) {
+        const pgSql = convertSql(statement);
+        await pool.query(pgSql);
+      }
+    }
+  };
 } else if (dbType === 'mysql') {
   const mysql = require('mysql2/promise');
   
