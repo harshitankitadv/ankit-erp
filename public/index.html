@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ankit Advertising ERP</title>
+  <!-- Google Fonts - Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Vanilla CSS Stylesheet -->
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- SheetJS (Excel Export) CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- html2pdf.js (PDF Export) CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+
+  <!-- ================= AUTH CONTAINER ================= -->
+  <div id="auth-container" class="auth-wrapper">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="auth-logo">
+          <i class="fa-solid fa-rectangle-ad"></i>
+          <span>Ankit Advertising</span>
+        </div>
+        <h2>Welcome Back</h2>
+        <p>Enter your credentials to access the ERP platform</p>
+      </div>
+      <form id="login-form" autocomplete="off">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <div class="input-wrapper">
+            <i class="fa-solid fa-user"></i>
+            <input type="text" id="username" required placeholder="e.g. bhupinder">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="input-wrapper">
+            <i class="fa-solid fa-lock"></i>
+            <input type="password" id="password" required placeholder="••••••••">
+          </div>
+        </div>
+        <div id="login-error" class="alert error hidden">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          <span class="message">Invalid username or password.</span>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">
+          <span>Log In</span>
+          <i class="fa-solid fa-arrow-right-to-bracket"></i>
+        </button>
+      </form>
+      <div class="auth-footer">
+        <p>Ankit Advertising ERP • Fiscal Year 2026-27</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= APP CONTAINER ================= -->
+  <div id="app-container" class="app-layout hidden">
+    <!-- Sidebar -->
+    <aside class="app-sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-logo">
+          <i class="fa-solid fa-rectangle-ad"></i>
+          <span>Ankit Adv. ERP</span>
+        </div>
+        <button id="sidebar-close-btn" class="mobile-only-btn" title="Close menu">
+          <i class="fa-solid fa-times"></i>
+        </button>
+      </div>
+
+      <nav class="sidebar-nav">
+        <ul>
+          <li>
+            <a href="#" class="nav-link active" data-view="dashboard">
+              <i class="fa-solid fa-chart-line"></i>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-link" data-view="jobs">
+              <i class="fa-solid fa-file-invoice"></i>
+              <span>Job Sheets</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-link" data-view="ledger">
+              <i class="fa-solid fa-book-open"></i>
+              <span>Extra Billing Ledger</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-link" data-view="reports">
+              <i class="fa-solid fa-file-contract"></i>
+              <span>Reports</span>
+            </a>
+          </li>
+          <li id="nav-users-li" class="hidden">
+            <a href="#" class="nav-link" data-view="users">
+              <i class="fa-solid fa-users-gear"></i>
+              <span>User Management</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="sidebar-user">
+        <div class="user-avatar">
+          <span id="user-initials">UA</span>
+        </div>
+        <div class="user-info">
+          <h4 id="user-display-name">User Name</h4>
+          <span id="user-display-role">Role</span>
+        </div>
+        <button id="logout-btn" class="logout-icon-btn" title="Logout">
+          <i class="fa-solid fa-power-off"></i>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="app-content">
+      <!-- Top Header -->
+      <header class="app-header">
+        <div class="header-left">
+          <button id="sidebar-toggle-btn" class="mobile-only-btn" title="Open menu">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+          <h2 id="view-title">Dashboard</h2>
+        </div>
+        <div class="header-right">
+          <!-- Global Search -->
+          <div class="global-search-wrapper">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="global-search" placeholder="Search Jobs (No., Client, Product, Invoice)...">
+            <div id="search-dropdown" class="search-results-dropdown hidden"></div>
+          </div>
+          <!-- Role Badge -->
+          <span id="header-role-badge" class="badge">Role</span>
+        </div>
+      </header>
+
+      <!-- Router Content -->
+      <div id="router-view" class="view-container">
+        
+        <!-- DASHBOARD VIEW -->
+        <section id="view-dashboard" class="sub-view">
+          <div class="kpi-grid">
+            <div class="kpi-card purple">
+              <div class="kpi-icon"><i class="fa-solid fa-folder-open"></i></div>
+              <div class="kpi-details">
+                <h3>Total Job Sheets</h3>
+                <p id="kpi-total-jobs">0</p>
+              </div>
+            </div>
+            <div class="kpi-card green">
+              <div class="kpi-icon"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+              <div class="kpi-details">
+                <h3>Total Gross Revenue</h3>
+                <p id="kpi-total-revenue">₹0</p>
+              </div>
+            </div>
+            <div class="kpi-card blue">
+              <div class="kpi-icon"><i class="fa-solid fa-wallet"></i></div>
+              <div class="kpi-details">
+                <h3>Total Net Revenue</h3>
+                <p id="kpi-total-net-revenue">₹0</p>
+              </div>
+            </div>
+            <div class="kpi-card red">
+              <div class="kpi-icon"><i class="fa-solid fa-money-bill-transfer"></i></div>
+              <div class="kpi-details">
+                <h3>Extra Billing Outstanding</h3>
+                <p id="kpi-extra-billing-outstanding">₹0</p>
+              </div>
+            </div>
+            <div class="kpi-card orange">
+              <div class="kpi-icon"><i class="fa-solid fa-box-archive"></i></div>
+              <div class="kpi-details">
+                <h3>Current Stock Quantity</h3>
+                <p id="kpi-stock-qty">0</p>
+              </div>
+            </div>
+            <div class="kpi-card teal">
+              <div class="kpi-icon"><i class="fa-solid fa-cubes"></i></div>
+              <div class="kpi-details">
+                <h3>Current Stock Value</h3>
+                <p id="kpi-stock-value">₹0</p>
+              </div>
+            </div>
+            <div class="kpi-card success">
+              <div class="kpi-icon"><i class="fa-solid fa-circle-check"></i></div>
+              <div class="kpi-details">
+                <h3>Verified Job Sheets</h3>
+                <p id="kpi-verified-jobs">0</p>
+              </div>
+            </div>
+            <div class="kpi-card warning">
+              <div class="kpi-icon"><i class="fa-solid fa-clock"></i></div>
+              <div class="kpi-details">
+                <h3>Pending Verification</h3>
+                <p id="kpi-pending-verification">0</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="charts-grid">
+            <div class="chart-container grid-span-2">
+              <h3>Monthly Revenue & Net Revenue Trend</h3>
+              <div class="chart-wrapper">
+                <canvas id="chart-monthly-revenue"></canvas>
+              </div>
+            </div>
+            <div class="chart-container">
+              <h3>Verification Breakdown</h3>
+              <div class="chart-wrapper doughnut">
+                <canvas id="chart-verification-breakdown"></canvas>
+              </div>
+            </div>
+            <div class="chart-container">
+              <h3>Client-wise Top Revenue</h3>
+              <div class="chart-wrapper">
+                <canvas id="chart-client-revenue"></canvas>
+              </div>
+            </div>
+            <div class="chart-container grid-span-2">
+              <h3>Monthly Extra Billing Adjustments (Ledger Credit vs Debit)</h3>
+              <div class="chart-wrapper">
+                <canvas id="chart-extra-billing-trend"></canvas>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- JOB SHEETS VIEW -->
+        <section id="view-jobs" class="sub-view hidden">
+          <div class="toolbar">
+            <div class="filter-tabs" id="jobs-filter-tabs">
+              <button class="filter-tab active status-filter" data-status="">All</button>
+              <button class="filter-tab status-filter" data-status="Draft">Draft</button>
+              <button class="filter-tab status-filter" data-status="Sale Pending">Sale Pending</button>
+              <button class="filter-tab status-filter" data-status="Purchase Pending">Purchase Pending</button>
+              <button class="filter-tab status-filter" data-status="Ready for Verification">Ready for Verification</button>
+              <button class="filter-tab status-filter" data-status="Verified">Verified</button>
+              <button class="filter-tab billing-filter hidden" data-billing="Pending Billing">Pending Billing</button>
+              <button class="filter-tab billing-filter hidden" data-billing="Billing Done">Billing Done</button>
+            </div>
+            <button id="create-job-btn" class="btn btn-primary">
+              <i class="fa-solid fa-plus"></i>
+              <span>Create Job Sheet</span>
+            </button>
+          </div>
+
+          <div class="table-container responsive-table">
+            <table id="jobs-table">
+              <thead>
+                <tr>
+                  <th>Job Sheet Number</th>
+                  <th>Date</th>
+                  <th>Client Name</th>
+                  <th>Product</th>
+                  <th>Calculated Stock</th>
+                  <th>Gross Revenue</th>
+                  <th>Net Revenue</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="jobs-list">
+                <!-- Loaded Dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- EXTRA BILLING LEDGER VIEW -->
+        <section id="view-ledger" class="sub-view hidden">
+          <div class="toolbar ledger-toolbar">
+            <div class="ledger-filters">
+              <div class="filter-group">
+                <label for="ledger-client-select">Select Client:</label>
+                <select id="ledger-client-select">
+                  <option value="">-- All Clients --</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label for="ledger-start-date">From:</label>
+                <input type="date" id="ledger-start-date">
+              </div>
+              <div class="filter-group">
+                <label for="ledger-end-date">To:</label>
+                <input type="date" id="ledger-end-date">
+              </div>
+              <button id="ledger-filter-btn" class="btn btn-secondary"><i class="fa-solid fa-filter"></i> Filter</button>
+              <button id="ledger-clear-btn" class="btn btn-text"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+            </div>
+            <div class="action-buttons">
+              <button id="manual-ledger-btn" class="btn btn-outline">
+                <i class="fa-solid fa-money-bill-wave"></i>
+                <span>Add Ledger Entry</span>
+              </button>
+              <button id="export-ledger-excel" class="btn btn-icon" title="Export to Excel"><i class="fa-solid fa-file-excel"></i></button>
+              <button id="export-ledger-pdf" class="btn btn-icon" title="Export to PDF"><i class="fa-solid fa-file-pdf"></i></button>
+            </div>
+          </div>
+
+          <div id="ledger-summary" class="ledger-summary-banner hidden">
+            <div class="summary-item">
+              <span class="lbl">Total Extra Billed (Credits)</span>
+              <span id="ledger-total-credit" class="val">₹0</span>
+            </div>
+            <div class="summary-item">
+              <span class="lbl">Total Adjusted/Paid (Debits)</span>
+              <span id="ledger-total-debit" class="val">₹0</span>
+            </div>
+            <div class="summary-item outstanding">
+              <span class="lbl">Outstanding Balance Payable</span>
+              <span id="ledger-outstanding-balance" class="val">₹0</span>
+            </div>
+          </div>
+
+          <div class="table-container responsive-table" id="ledger-report-area">
+            <table id="ledger-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Job Sheet Number</th>
+                  <th>Client Name</th>
+                  <th>Particulars</th>
+                  <th>Debit</th>
+                  <th>Credit</th>
+                  <th>Running Balance</th>
+                  <th>Recorded By</th>
+                  <th>Status</th>
+                  <th>Remarks</th>
+                  <th class="ledger-action-header hidden">Action</th>
+                </tr>
+              </thead>
+              <tbody id="ledger-list">
+                <!-- Loaded Dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- REPORTS VIEW -->
+        <section id="view-reports" class="sub-view hidden">
+          <div class="report-tabs">
+            <button class="report-tab active" data-report="revenue">Job-wise Revenue Report</button>
+            <button class="report-tab" data-report="stock">Stock Report</button>
+            <button class="report-tab" data-report="verification-pending">Pending Verification</button>
+            <button class="report-tab" data-report="verification-verified">Verified Transactions</button>
+          </div>
+
+          <div class="report-filters-container">
+            <div id="report-filters-stock" class="report-filters hidden">
+              <div class="filter-group">
+                <label for="rep-stock-start">From:</label>
+                <input type="date" id="rep-stock-start">
+              </div>
+              <div class="filter-group">
+                <label for="rep-stock-end">To:</label>
+                <input type="date" id="rep-stock-end">
+              </div>
+              <div class="filter-group">
+                <label for="rep-stock-client">Client:</label>
+                <input type="text" id="rep-stock-client" placeholder="Client Name">
+              </div>
+              <div class="filter-group">
+                <label for="rep-stock-product">Product:</label>
+                <input type="text" id="rep-stock-product" placeholder="Product Name">
+              </div>
+              <div class="filter-group">
+                <label for="rep-stock-jobno">Job Sheet No:</label>
+                <input type="text" id="rep-stock-jobno" placeholder="JS/2026-27/0001">
+              </div>
+              <button id="rep-stock-filter-btn" class="btn btn-primary btn-sm"><i class="fa-solid fa-search"></i> Search</button>
+              <button id="rep-stock-reset-btn" class="btn btn-text btn-sm">Reset</button>
+            </div>
+            
+            <div class="action-buttons report-actions">
+              <button id="export-report-excel" class="btn btn-outline btn-sm">
+                <i class="fa-solid fa-file-excel"></i> Export Excel
+              </button>
+              <button id="export-report-pdf" class="btn btn-outline btn-sm">
+                <i class="fa-solid fa-file-pdf"></i> Export PDF
+              </button>
+            </div>
+          </div>
+
+          <div class="table-container responsive-table" id="report-render-area">
+            <!-- Render Tables dynamically here -->
+            <table id="reports-table">
+              <thead id="reports-table-head">
+                <!-- Header changes dynamically -->
+              </thead>
+              <tbody id="reports-table-body">
+                <!-- Loaded Dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- USER MANAGEMENT VIEW -->
+        <section id="view-users" class="sub-view hidden">
+          <div class="toolbar">
+            <h3>System User Management</h3>
+            <button id="add-user-btn" class="btn btn-primary">
+              <i class="fa-solid fa-user-plus"></i>
+              <span>Add User Account</span>
+            </button>
+          </div>
+
+          <div class="table-container responsive-table">
+            <table id="users-table">
+              <thead>
+                <tr>
+                  <th>Username</th>
+                  <th>Full Name</th>
+                  <th>Role</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="users-list">
+                <!-- Loaded Dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ================= MODALS ================= -->
+  
+  <!-- JOB SHEET FORM MODAL -->
+  <div id="job-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="job-modal-title">Create Job Sheet</h3>
+        <button class="modal-close-btn" data-modal="job-modal">&times;</button>
+      </div>
+      <form id="job-form">
+        <div class="modal-body">
+          <div class="form-grid">
+            
+            <!-- Basic Details -->
+            <div class="form-section-header grid-span-2">Basic Details</div>
+            
+            <div class="form-group">
+              <label for="job_sheet_no">Job Sheet Number <span class="required">*</span></label>
+              <input type="text" id="job_sheet_no" required placeholder="e.g. JS/2026-27/0001">
+            </div>
+            
+            <div class="form-group">
+              <label for="job_date">Job Date <span class="required">*</span></label>
+              <input type="date" id="job_date" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="client_name">Client Name <span class="required">*</span></label>
+              <input type="text" id="client_name" required placeholder="e.g. Acme Corporation">
+            </div>
+            
+            <div class="form-group">
+              <label for="product">Product / Requirement <span class="required">*</span></label>
+              <input type="text" id="product" required placeholder="e.g. 500 Promo Flyers">
+            </div>
+            
+            <div class="form-group grid-span-2">
+              <label for="remarks">Remarks</label>
+              <textarea id="remarks" rows="2" placeholder="General instructions or notes..."></textarea>
+            </div>
+
+            <!-- Purchase Details -->
+            <div class="form-section-header grid-span-2">Purchase Details</div>
+            
+            <div class="form-group grid-span-2" style="margin-bottom: 15px;">
+              <div class="table-container responsive-table" style="box-shadow: none; border: 1px solid var(--border-color);">
+                <table id="form-purchases-table" style="min-width: 600px;">
+                  <thead>
+                    <tr>
+                      <th style="padding: 10px 12px; font-size: 11px; width: 120px;">PO Number</th>
+                      <th style="padding: 10px 12px; font-size: 11px;">Purchase Party (Vendor)</th>
+                      <th style="padding: 10px 12px; font-size: 11px;">Purchase Product / Req.</th>
+                      <th style="padding: 10px 12px; font-size: 11px; width: 100px;">Quantity</th>
+                      <th style="padding: 10px 12px; font-size: 11px; width: 120px;">Rate (₹)</th>
+                      <th style="padding: 10px 12px; font-size: 11px; width: 120px;">Amount (₹)</th>
+                      <th style="padding: 10px 12px; font-size: 11px; width: 60px;">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="form-purchases-list">
+                    <!-- Dynamic Purchase rows here -->
+                  </tbody>
+                </table>
+              </div>
+              <button type="button" id="form-add-purchase-row-btn" class="btn btn-outline btn-sm" style="margin-top: 10px;">
+                <i class="fa-solid fa-plus"></i> Add Purchase Item
+              </button>
+            </div>
+            
+            <div class="form-group">
+              <label>Total Purchase Qty (Calculated)</label>
+              <input type="text" id="purchase_qty_total" readonly class="readonly" value="0">
+            </div>
+
+            <div class="form-group">
+              <label>Total Purchase Amount (Calculated)</label>
+              <input type="text" id="purchase_amount_calc" readonly class="readonly" value="₹0.00">
+            </div>
+
+            <!-- Sale Details -->
+            <div class="form-section-header grid-span-2">Sale Details</div>
+            
+            <div class="form-group grid-span-2" style="margin-bottom: 15px;">
+              <div class="table-container responsive-table" style="box-shadow: none; border: 1px solid var(--border-color);">
+                <table id="form-sales-table" style="min-width: 600px;">
+                  <thead>
+                    <tr>
+                      <th style="padding: 10px 12px; font-size: 11px; width: 120px;">PO Number</th>
+                      <th style="padding: 10px 12px; font-size: 11px;">Sale Party (Customer)</th>
+                      <th style="padding: 10px 12px; font-size: 11px;">Sale Product / Req.</th>
+                      <th style="padding: 10px 12px; font-size: 11px; width: 100px;">Quantity</th>
+                      <th style="padding: 10px 12px; font-size: 11px; width: 120px;">Rate (₹)</th>
+                      <th style="padding: 10px 12px; font-size: 11px; width: 120px;">Amount (₹)</th>
+                      <th style="padding: 10px 12px; font-size: 11px; width: 140px;" class="bill-no-header">Bill Number</th>
+                      <th style="padding: 10px 12px; font-size: 11px; width: 60px;">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="form-sales-list">
+                    <!-- Dynamic Sale rows here -->
+                  </tbody>
+                </table>
+              </div>
+              <button type="button" id="form-add-sale-row-btn" class="btn btn-outline btn-sm" style="margin-top: 10px;">
+                <i class="fa-solid fa-plus"></i> Add Sale Item
+              </button>
+            </div>
+            
+            <div class="form-group">
+              <label>Total Sale Qty (Calculated)</label>
+              <input type="text" id="sale_qty_total" readonly class="readonly" value="0">
+            </div>
+
+            <div class="form-group">
+              <label>Total Sale Amount (Calculated)</label>
+              <input type="text" id="sale_amount_calc" readonly class="readonly" value="₹0.00">
+            </div>
+
+            <!-- Extra Billing & Preview -->
+            <div class="form-section-header grid-span-2">Adjustments & Profitability Preview</div>
+            
+            <div class="form-group">
+              <label for="extra_billing">Extra Billing Amount (₹)</label>
+              <input type="number" id="extra_billing" min="0" step="any" value="0">
+            </div>
+            
+            <div class="form-group">
+              <label>Calculated Stock Balance Qty</label>
+              <input type="text" id="closing_stock_calc" readonly class="readonly" value="0">
+            </div>
+
+            <div class="form-group">
+              <label>Gross Revenue Preview</label>
+              <input type="text" id="gross_revenue_calc" readonly class="readonly" value="₹0.00">
+            </div>
+
+            <div class="form-group">
+              <label>Net Revenue Preview</label>
+              <input type="text" id="net_revenue_calc" readonly class="readonly" value="₹0.00">
+            </div>
+            
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-modal="job-modal">Cancel</button>
+          <button type="submit" id="job-save-btn" class="btn btn-primary">
+            <i class="fa-solid fa-save"></i>
+            <span>Save Job Sheet</span>
+          </button>
+          <button type="button" id="job-save-bill-btn" class="btn btn-success hidden">
+            <i class="fa-solid fa-file-invoice-dollar"></i>
+            <span>Save Sale Bill</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- JOB DETAIL VIEW MODAL (WITH AUDIT TRAIL) -->
+  <div id="job-detail-modal" class="modal-overlay hidden">
+    <div class="modal-card detail-modal">
+      <div class="modal-header">
+        <h3>Job Sheet Details & Audit History</h3>
+        <button class="modal-close-btn" data-modal="job-detail-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-header-panel">
+          <div class="job-no-banner">
+            <span class="lbl">Job Sheet Number</span>
+            <h2 id="det-job-no">JS/2026-27/0001</h2>
+          </div>
+          <div class="job-status-banner">
+            <span class="lbl">Current Status</span>
+            <div id="det-status-badge" class="badge">Draft</div>
+          </div>
+        </div>
+
+        <div class="detail-tabs">
+          <button class="detail-tab active" data-subview="detail-specs">Specifications & Financials</button>
+        </div>
+
+        <div class="detail-subview-container">
+          <!-- specifications view -->
+          <div id="detail-specs" class="detail-subview">
+            <div class="spec-grid">
+              <div class="spec-col grid-span-2">
+                <h4>Basic Details</h4>
+                <div class="spec-item"><strong>Job Date:</strong> <span id="det-job-date"></span></div>
+                <div class="spec-item"><strong>Client Name:</strong> <span id="det-client-name"></span></div>
+                <div class="spec-item"><strong>Product Requirement:</strong> <span id="det-product"></span></div>
+                <div class="spec-item"><strong>Remarks:</strong> <span id="det-remarks" class="remarks-box"></span></div>
+              </div>
+
+              <div class="spec-col">
+                <h4>Purchase Specs</h4>
+                <div id="det-purchases-container" style="margin-bottom: 12px; max-height: 150px; overflow-y: auto;">
+                  <!-- Dynamic purchase rows -->
+                </div>
+                <div class="spec-item"><strong>Total Purchase Qty:</strong> <span id="det-purchase-qty"></span></div>
+                <div class="spec-item highlighted"><strong>Total Purchase Cost:</strong> <span id="det-purchase-amount"></span></div>
+              </div>
+
+              <div class="spec-col">
+                <h4>Sale Specs</h4>
+                <div id="det-sales-container" style="margin-bottom: 12px; max-height: 150px; overflow-y: auto;">
+                  <!-- Dynamic sale rows -->
+                </div>
+                <div class="spec-item"><strong>Total Sale Qty:</strong> <span id="det-sale-qty"></span></div>
+                <div class="spec-item highlighted"><strong>Total Sale Value:</strong> <span id="det-sale-amount"></span></div>
+              </div>
+
+              <div class="spec-col grid-span-2 financials-summary-box">
+                <h4>ERP Calculations Summary</h4>
+                <div class="fin-calc-grid">
+                  <div class="fin-calc-item">
+                    <span class="label">Closing Stock Qty</span>
+                    <span id="det-closing-stock" class="val">0</span>
+                  </div>
+                  <div class="fin-calc-item">
+                    <span class="label">Extra Billing Adjustment</span>
+                    <span id="det-extra-billing" class="val">₹0</span>
+                  </div>
+                  <div class="fin-calc-item">
+                    <span class="label">Gross Profit/Revenue</span>
+                    <span id="det-gross-revenue" class="val font-green">₹0</span>
+                  </div>
+                  <div class="fin-calc-item">
+                    <span class="label">Net Profit/Revenue</span>
+                    <span id="det-net-revenue" class="val font-blue">₹0</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div id="verified-stamp-banner" class="verified-stamp hidden">
+              <i class="fa-solid fa-stamp"></i>
+              <div class="stamp-details">
+                <h3>VERIFIED</h3>
+                <p>Verified By: <span id="det-verified-by"></span></p>
+                <p>Verified Date & Time: <span id="det-verified-at"></span></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <div class="footer-actions-left">
+          <span class="created-info">Created by: <span id="det-created-by"></span> on <span id="det-created-at"></span></span>
+        </div>
+        <div class="footer-actions-right">
+          <button id="det-print-btn" class="btn btn-outline"><i class="fa-solid fa-print"></i> Print PDF</button>
+          <button id="det-unverify-btn" class="btn btn-danger hidden"><i class="fa-solid fa-unlock"></i> Unverify</button>
+          <button id="det-verify-trigger-btn" class="btn btn-success hidden"><i class="fa-solid fa-signature"></i> Verify Job</button>
+          <button id="det-edit-btn" class="btn btn-primary"><i class="fa-solid fa-edit"></i> Edit Job</button>
+          <button class="btn btn-outline" data-modal="job-detail-modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VERIFICATION FORM MODAL -->
+  <div id="verify-modal" class="modal-overlay hidden">
+    <div class="modal-card" style="max-width: 700px;">
+      <div class="modal-header">
+        <h3>Verify Job Sheet Purchases</h3>
+        <button class="modal-close-btn" data-modal="verify-modal">&times;</button>
+      </div>
+      <form id="verify-form">
+        <div class="modal-body">
+          <p class="modal-description" style="margin-bottom: 15px;">Please enter the Vendor's Purchase Invoice details for each item to verify this job sheet. This will lock the record and mark it as verified.</p>
+          <div class="table-container responsive-table" style="box-shadow: none; border: 1px solid var(--border-color); margin-bottom:15px;">
+            <table style="min-width: 500px;">
+              <thead>
+                <tr>
+                  <th style="padding: 10px 12px; font-size: 11px; width: 120px;">PO Number</th>
+                  <th style="padding: 10px 12px; font-size: 11px;">Vendor / Item</th>
+                  <th style="padding: 10px 12px; font-size: 11px; width: 180px;">Invoice Number <span class="required">*</span></th>
+                  <th style="padding: 10px 12px; font-size: 11px; width: 150px;">Invoice Date <span class="required">*</span></th>
+                </tr>
+              </thead>
+              <tbody id="verify-purchases-list">
+                <!-- Dynamically populated list of purchases -->
+              </tbody>
+            </table>
+          </div>
+          <div id="verify-error" class="alert error hidden"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-modal="verify-modal">Cancel</button>
+          <button type="submit" class="btn btn-success"><i class="fa-solid fa-check-double"></i> Complete Verification</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MANUAL LEDGER ENTRY MODAL -->
+  <div id="ledger-modal" class="modal-overlay hidden">
+    <div class="modal-card small-modal">
+      <div class="modal-header">
+        <h3>Add Extra Billing Ledger Entry</h3>
+        <button class="modal-close-btn" data-modal="ledger-modal">&times;</button>
+      </div>
+      <form id="ledger-form">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="led_date">Date <span class="required">*</span></label>
+            <input type="date" id="led_date" required>
+          </div>
+          <div class="form-group">
+            <label for="led_client_name">Client Name <span class="required">*</span></label>
+            <input type="text" id="led_client_name" required placeholder="e.g. Acme Corporation">
+          </div>
+          <div class="form-group">
+            <label for="led_particulars">Particulars / Description <span class="required">*</span></label>
+            <input type="text" id="led_particulars" required placeholder="e.g. Settlement of Job extra billing / Cash Receipt">
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="led_debit">Debit Amount (Paid Back) (₹)</label>
+              <input type="number" id="led_debit" min="0" step="any" value="0">
+            </div>
+            <div class="form-group">
+              <label for="led_credit">Credit Amount (Billed) (₹)</label>
+              <input type="number" id="led_credit" min="0" step="any" value="0">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="led_remarks">Remarks</label>
+            <textarea id="led_remarks" rows="2" placeholder="Any adjustment references..."></textarea>
+          </div>
+          <div id="ledger-error" class="alert error hidden"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-modal="ledger-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-save"></i> Save Ledger Entry</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- USER FORM MODAL -->
+  <div id="user-modal" class="modal-overlay hidden">
+    <div class="modal-card small-modal">
+      <div class="modal-header">
+        <h3 id="user-modal-title">Create User Account</h3>
+        <button class="modal-close-btn" data-modal="user-modal">&times;</button>
+      </div>
+      <form id="user-form">
+        <input type="hidden" id="user_id">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="usr_username">Username <span class="required">*</span></label>
+            <input type="text" id="usr_username" required placeholder="e.g. bhupinder">
+          </div>
+          <div class="form-group">
+            <label for="usr_name">Full Name <span class="required">*</span></label>
+            <input type="text" id="usr_name" required placeholder="e.g. Bhupinder Sharma">
+          </div>
+          <div class="form-group">
+            <label for="usr_role">System Access Role <span class="required">*</span></label>
+            <select id="usr_role" required>
+              <option value="operations">Operations User</option>
+              <option value="accounts">Accounts User</option>
+              <option value="admin">Verifier / Administrator</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="usr_password" id="usr_password_label">Password <span class="required">*</span></label>
+            <input type="password" id="usr_password" required placeholder="••••••••">
+            <span class="help-text" id="usr_password_help">Enter at least 6 characters.</span>
+          </div>
+          <div id="user-error" class="alert error hidden"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-modal="user-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-user-plus"></i> Save Account</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- JS Logic -->
+  <script src="/js/app.js"></script>
+  <script src="/js/dashboard.js"></script>
+</body>
+</html>
