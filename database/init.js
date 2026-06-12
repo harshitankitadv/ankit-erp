@@ -29,7 +29,7 @@ async function initializeDatabase() {
 
     // Seed default users if users table is empty
     const usersCount = await db.get('SELECT COUNT(*) as count FROM users');
-    if (usersCount && usersCount.count === 0) {
+    if (usersCount && parseInt(usersCount.count, 10) === 0) {
       console.log('Seeding default users...');
       
       const seedUsers = [
